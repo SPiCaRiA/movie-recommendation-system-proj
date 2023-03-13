@@ -1,0 +1,18 @@
+{
+  "python.analysis.typeCheckingMode": "off",
+  "python.formatting.provider": "yapf",
+  "pylint.args": ["--disable=E0015"],
+  "editor.formatOnSave": true,
+  "search.exclude": {
+    "**/.venv": true,
+    "**/.mypy_cache": true
+  },
+  "[python]": {
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": true
+    }
+  },
+  "python.linting.mypyEnabled": true,
+  "python.linting.enabled": true,
+  "isort.args": ["--profile", "black"]
+}
