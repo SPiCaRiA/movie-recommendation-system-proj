@@ -77,9 +77,9 @@ def slope_one_weighted_average(
 
     try:
         while True:
-            weight, cur_row = yield accessor
+            weight, row = yield accessor
             total_weight += weight
-            total += active_user[cur_row] * weight
+            total += active_user[row] * weight
     except GeneratorExit:
         if total_weight != 0:
             res = total / total_weight

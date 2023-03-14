@@ -22,13 +22,13 @@ if TYPE_CHECKING:
 
 @cache
 def indexed_desc_similarity(
-        row: int,
+        sim_row: int,
         similarity: Similarity,
         pre_sort_sim: FPreSortSim | None = None,
         map_func: FIndexedSimMap | None = None) -> IndexedSimArray:
     sim_m = similarity.raw
     indices = np.arange(0, sim_m.shape[1], dtype=sim_m.dtype)
-    active_sim: FloatArray = sim_m[row]
+    active_sim: FloatArray = sim_m[sim_row]
 
     sort_similarity_arr = active_sim.T
     if pre_sort_sim is not None:
@@ -43,6 +43,6 @@ def indexed_desc_similarity(
     return desc_sim
 
 
-def indexed_support(row: int, support: SupportMatrix) -> IndexedSimArray:
+def indexed_support(sup_row: int, support: SupportMatrix) -> IndexedSimArray:
     indices = np.arange(0, support.shape[1], dtype=support.dtype)
-    return np.column_stack((indices, support[row].T))
+    return np.column_stack((indices, support[sup_row].T))

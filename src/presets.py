@@ -28,7 +28,7 @@ class _Presets(TypedDict):
     corr: Config
     cos: Config
     case_amp: Config
-    item_based: Config
+    item_based_k: Config
     adj_cos: Config
     slope_one: Config
 
