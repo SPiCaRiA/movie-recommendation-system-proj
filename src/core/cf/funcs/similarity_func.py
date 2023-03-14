@@ -71,3 +71,17 @@ def adjusted_cosine_similarity(r1: RatingMatrix,
     # rating matrix), so they can be applied with the same user mean matrix.
     user_mean = np.ma.mean(r1, axis=0)
     return cosine_similarity(r1 - user_mean, r2 - user_mean)
+
+
+def average_difference_matrix(r1: RatingMatrix,
+                              r2: RatingMatrix) -> NanSimilarityMatrix:
+    '''
+    For slope one. Calculate the average difference between columns.
+    '''
+    r1_na = r1[..., None]
+    r2t_na = r2.T[None, ...]
+
+    mask_m = r1_na.mask | r2t_na.mask
+    diff_m = r1_na - r2t_na
+    diff_m.mask = mask_m
+    return np.ma.mean(diff_m, axis=1)

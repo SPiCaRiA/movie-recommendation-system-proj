@@ -4,10 +4,10 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from ..typing import Questions, UserItemRatings, int_masked_array, int_masked_matrix
+from ..typing import Questions, UserItemRatings, int_masked_matrix
 
 if TYPE_CHECKING:
-    from ..typing import EntryArray, IntMaskedArray
+    from ..typing import EntryArray
 
 
 def aggregate_all(

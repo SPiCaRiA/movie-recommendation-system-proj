@@ -8,17 +8,17 @@ if TYPE_CHECKING:
     from ...typing import FPrediction, IndexedSimArray, RatingMatrix
 
 Accessor = Callable[[], float]
-PredictionGenerator = Generator[Accessor, tuple[float, IntMaskedArray], None]
+PredictionGenerator = Generator[Accessor, tuple[float, int], None]
 
 
 def prediction_func(
-        build_generator: Callable[[int, IntMaskedArray, IntMaskedArray],
+        build_generator: Callable[[int, int, RatingMatrix, IntMaskedArray],
                                   PredictionGenerator],
         filter_by_weight: Callable[[float], bool] | None = None) -> FPrediction:
 
     def wrapped(k: int, col: int, active_row: int, active_user: IntMaskedArray,
                 r: RatingMatrix, indexed_desc_sim: IndexedSimArray) -> float:
-        gen = build_generator(col, r[active_row], active_user)
+        gen = build_generator(col, active_row, r, active_user)
         get_res = next(gen)
 
         for i_row, weight in indexed_desc_sim:
@@ -30,16 +30,17 @@ def prediction_func(
                 # No value
                 continue
 
-            if (filter_by_weight(weight) if filter_by_weight else weight == 0):
+            if (filter_by_weight(weight)
+                    if filter_by_weight is not None else weight == 0):
                 break
 
             k -= 1
-            gen.send((weight, r[row]))
+            gen.send((weight, row))
 
         gen.close()
         return get_res()
 
-    # Restore function name from its builder.
+    # Restore function name from the generator builder.
     wrapped.__name__ = build_generator.__name__
 
     return wrapped

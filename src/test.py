@@ -1,5 +1,5 @@
-from .core.knn import similarity_matrix
-from .core.shared.similarity import support_matrix
+from .core.cf import similarity_matrix
+from .core.cf.similarity import support_matrix
 from .io import (
     aggregate_all,
     aggregate_cross_validation,
@@ -10,13 +10,14 @@ from .io import (
 )
 from .loss import loss_mae
 from .predictors.item_based_cf import item_based_cf
+from .predictors.slope_one_cf import slope_one
 from .predictors.user_based_cf import user_based_cf
 from .presets import dynamic_presets, presets
 from .typing import Similarity
 
 
 def test_user_based_cf() -> None:
-    name = 'ex2.txt'
+    name = 'ex1.txt'
     train_arr = read_entries('data/train.' + name)
     test_arr = read_entries('data/test.' + name)
 
@@ -27,7 +28,7 @@ def test_user_based_cf() -> None:
     print('--------------')
     print(support_matrix(a.raw, r.raw))
     print('--------------')
-    conf = presets['corr'] + {'knn_k': 2}
+    conf = presets['corr'] + {'knn_k': 1}
     print(conf)
     predictions = user_based_cf(r, a, q, conf)
     print(predictions)
@@ -53,6 +54,19 @@ def test_item_based_cf():
     q.take_answers(predictions, force_update=True, validate=False)
     # q.take_answers(user_based_cf(r, a, q, conf), force_update=True)
     print(q)
+
+
+def test_slope_one():
+    train_arr = read_entries('data/train.so.txt')
+    test_arr = read_entries('data/test.so.txt')
+    r, a, q = aggregate_cross_validation(train_arr, test_arr)
+    print(r.raw)
+    print(a.raw)
+    print(q)
+    conf = presets['slope_one']
+    print(conf)
+    predictions = slope_one(r, a, q, conf)
+    print(predictions)
 
 
 def test():
@@ -95,4 +109,4 @@ def dump_sim():
 
 
 if __name__ == '__main__':
-    test_user_based_cf()
+    test_slope_one()

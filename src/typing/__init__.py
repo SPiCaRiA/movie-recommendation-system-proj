@@ -8,6 +8,8 @@ from .nparray_builder import (
 )
 from .type_aliases import (
     EntryArray,
+    FDynamicK,
+    FIndexedSimMap,
     FloatArray,
     FloatMaskedArray,
     FloatMaskedMatrix,
@@ -24,9 +26,8 @@ from .type_aliases import (
     NpFloat,
     NpInt,
     PredictionArray,
-    FDynamicK,
     RatingMatrix,
-    FIndexedSimMap,
     SimilarityMatrix,
+    SupportMatrix,
 )
 from .wrapper_types import Questions, Similarity, UserItemRatings

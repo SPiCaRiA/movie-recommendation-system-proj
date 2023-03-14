@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from ..core.knn import indexed_desc_similarity, similarity_matrix
+from ..core.cf import indexed_desc_similarity, similarity_matrix
 from ..typing import float_array
 
 if TYPE_CHECKING:

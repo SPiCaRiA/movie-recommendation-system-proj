@@ -16,21 +16,8 @@ if TYPE_CHECKING:
         FSimilarity,
         IndexedSimArray,
         RatingMatrix,
+        SupportMatrix,
     )
-
-
-def similarity_matrix(
-        r1: RatingMatrix,
-        r2: RatingMatrix,
-        similarity_func: FSimilarity,
-        fill_value: int,
-        weights: tuple[FloatMatrix, FloatMatrix] | None = None) -> Similarity:
-    if weights is not None:
-        weight1, weight2 = weights
-        sim_m = similarity_func(r1 * weight1, r2 * weight2).filled(fill_value)
-    else:
-        sim_m = similarity_func(r1, r2).filled(fill_value)
-    return Similarity(sim_m)
 
 
 @cache
@@ -54,3 +41,8 @@ def indexed_desc_similarity(
     if map_func is not None:
         return map_func(desc_sim)
     return desc_sim
+
+
+def indexed_support(row: int, support: SupportMatrix) -> IndexedSimArray:
+    indices = np.arange(0, support.shape[1], dtype=support.dtype)
+    return np.column_stack((indices, support[row].T))

@@ -1,15 +1,17 @@
-from typing import Any, Callable, TypedDict
+from typing import Callable, TypedDict
 
 import numpy as np
 
 from .config import Config
-from .core.knn.funcs.prediction_func import (
+from .core.cf.funcs.prediction_func import (
     adj_diff_weighted_average,
     diff_weighted_average,
+    slope_one_weighted_average,
     weighted_average,
 )
-from .core.knn.funcs.similarity_func import (
+from .core.cf.funcs.similarity_func import (
     adjusted_cosine_similarity,
+    average_difference_matrix,
     cosine_similarity,
     pearson_correlation,
 )
@@ -28,6 +30,7 @@ class _Presets(TypedDict):
     case_amp: Config
     item_based: Config
     adj_cos: Config
+    slope_one: Config
 
 
 class _DynamicPresets(TypedDict):
@@ -49,7 +52,10 @@ presets: _Presets = {
     'adj_cos':
         Config(sim_scheme=adjusted_cosine_similarity,
                prediction=adj_diff_weighted_average,
-               pre_sort_sim=abs)    # type: ignore
+               pre_sort_sim=abs),    # type: ignore
+    'slope_one':
+        Config(sim_scheme=average_difference_matrix,
+               prediction=slope_one_weighted_average)
 }
 
 dynamic_presets: _DynamicPresets = {
