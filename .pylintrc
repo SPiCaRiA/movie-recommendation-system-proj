@@ -432,7 +432,7 @@ disable=raw-checker-failed,
         unsubscriptable-object,
         unsupported-membership-test,
         invalid-hash-returned,
-        unused-import,
+        ; unused-import,
         invalid-name
 
 # Enable the message, report, category or checker with the given id(s). You can
