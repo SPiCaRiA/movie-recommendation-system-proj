@@ -1,5 +1,6 @@
 from .core.cf import similarity_matrix
 from .core.cf.similarity import support_matrix
+from .core.train import train_cf
 from .io import (
     aggregate_all,
     aggregate_cross_validation,
@@ -10,25 +11,23 @@ from .io import (
 )
 from .loss import loss_mae
 from .predictors.item_based_cf import item_based_cf
-from .predictors.slope_one_cf import slope_one
+from .predictors.slope_one_cf import slope_one_cf
 from .predictors.user_based_cf import user_based_cf
 from .presets import dynamic_presets, presets
 from .typing import Similarity
 
 
 def test_user_based_cf() -> None:
-    name = 'ex1.txt'
+    name = 'ex2.txt'
     train_arr = read_entries('data/train.' + name)
     test_arr = read_entries('data/test.' + name)
 
     r, a, q = aggregate_all(train_arr, test_arr)
-    # print(r.raw)
-    # print(a.raw)
-    # print(q.questions)
+    print(r.raw)
+    print(a.raw)
+    print(q.questions)
     print('--------------')
-    print(support_matrix(a.raw, r.raw))
-    print('--------------')
-    conf = presets['corr'] + {'knn_k': 1}
+    conf = presets['corr'] + {'knn_k': 2}
     print(conf)
     predictions = user_based_cf(r, a, q, conf)
     print(predictions)
@@ -65,7 +64,7 @@ def test_slope_one():
     print(q)
     conf = presets['slope_one']
     print(conf)
-    predictions = slope_one(r, a, q, conf)
+    predictions = slope_one_cf(r, a, q, conf)
     print(predictions)
 
 
@@ -79,11 +78,14 @@ def test():
     # conf = presets['item_based']
     # print(conf)
     # k = 20
-    conf = presets['item_based_k'] + presets[
-        'adj_cos']    # * dynamic_presets['case_amp'](2.5)
+    # conf = presets['item_based_k'] + presets[
+    #     'adj_cos']    # * dynamic_presets['case_amp'](2.5)
+    # conf = presets['slope_one']
+    conf = presets['adj_cos'] + presets['item_based_k']
     print(conf)
     # sim_m = read_similarity(fname)
-    predictions = item_based_cf(r, a, q, conf, None)
+    predictions = item_based_cf(r, a, q, conf)
+    # predictions = slope_one_cf(r, a, q, conf)
     # q.take_answers(predictions, force_update=True, validate=False)
     # q.take_answers(user_based_cf(r, a, q, conf), force_update=True)
     # print(predictions)
@@ -108,5 +110,18 @@ def dump_sim():
     print(new_sim.raw)
 
 
+def train():
+    train_arr, test_arr = read_split_entries(0.05)
+    r, a, q = aggregate_cross_validation(train_arr, test_arr)
+    conf_list = []
+    for k in range(1, 50):
+        conf = (presets['corr'] + {
+            'knn_k': k
+        }) * dynamic_presets['case_amp'](2.5) * dynamic_presets['iuf'](r.raw)
+        conf_list.append(conf)
+    print(conf_list[0])
+    train_cf(r, a, q, user_based_cf, conf_list)
+
+
 if __name__ == '__main__':
-    test_slope_one()
+    train()
