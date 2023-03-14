@@ -15,15 +15,16 @@ def item_based_cf(ratings: UserItemRatings,
                   questions: Questions,
                   config: Config,
                   item_similarity: Similarity | None = None) -> PredictionArray:
-    stacked_ratings = ratings + active_ratings
-
     if item_similarity is None:
-        item_similarity = similarity_matrix(stacked_ratings.raw.T,
-                                            stacked_ratings.raw.T,
+        item_similarity = similarity_matrix(ratings.raw.T,
+                                            ratings.raw.T,
                                             config.sim_scheme,
                                             config.sim_fill_value,
                                             weights=config.sim_weights)
 
+    # In real world, active users do not come together at once. But for the sake
+    # of this project, we batch and stack them with the training ratings.
+    stacked_ratings = ratings + active_ratings
     predictions = float_array(questions.raw.shape[0])
     for i, (user_id, movie_id, _) in enumerate(questions.raw):
         movie_ind = stacked_ratings.ind_movie_id(movie_id)
@@ -40,8 +41,7 @@ def item_based_cf(ratings: UserItemRatings,
         else:
             k = config.knn_k
 
-        predictions[i] = config.prediction(k, user_ind, movie_ind,
-                                           stacked_ratings.raw[user_ind],
+        predictions[i] = config.prediction(k, user_ind, movie_ind, active_user,
                                            stacked_ratings.raw.T, item_desc_sim)
 
     return predictions
