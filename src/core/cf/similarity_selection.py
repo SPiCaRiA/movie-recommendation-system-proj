@@ -40,6 +40,7 @@ def indexed_desc_similarity(
     return desc_sim
 
 
+@cache
 def indexed_support(sup_row: int, support: Support) -> IndexedSimArray:
     sup_m = support.raw
     indices = np.arange(0, sup_m.shape[1], dtype=sup_m.dtype)
