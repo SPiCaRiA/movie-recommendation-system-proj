@@ -11,10 +11,9 @@ if TYPE_CHECKING:
     from .type_aliases import (
         EntryArray,
         FloatArray,
+        FloatMatrix,
         IntArray,
-        IntMaskedArray,
         RatingMatrix,
-        SimilarityMatrix,
     )
 
 
@@ -192,23 +191,27 @@ class Questions():
         return res
 
 
-class Similarity():
+class HashableMatrix():
     '''
-    Hashable wrapper of SimilarityMatrix.
+    Hashable wrapper of float matrix.
     '''
 
-    def __init__(self, sim_matrix: SimilarityMatrix) -> None:
-        self.raw = sim_matrix
+    def __init__(self, matrix: FloatMatrix) -> None:
+        self.raw = matrix
         self.raw.setflags(write=False)
 
     @cached_property
     def _hash(self) -> int:
         '''
-        Hash the similarity matrix with str conversion.
-        We don't need a perfect hash for similarity matrices, since they should
-        be very different.
+        Hash the float matrix with str conversion.
+        We don't provide a perfect hash for the float matrix, since it is rarely
+        needed under our context.
         '''
         return hash(str(self.raw))
 
     def __hash__(self) -> int:
         return self._hash
+
+
+Similarity = HashableMatrix
+Support = HashableMatrix

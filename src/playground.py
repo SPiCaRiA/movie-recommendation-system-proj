@@ -1,5 +1,4 @@
 from .core.cf import similarity_matrix
-from .core.cf.similarity import support_matrix
 from .core.train import train_cf
 from .io import (
     aggregate_all,
@@ -124,4 +123,4 @@ def train():
 
 
 if __name__ == '__main__':
-    train()
+    test_slope_one()

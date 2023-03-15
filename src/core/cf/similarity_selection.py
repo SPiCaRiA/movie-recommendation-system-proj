@@ -11,12 +11,9 @@ if TYPE_CHECKING:
     from ...typing import (
         FIndexedSimMap,
         FloatArray,
-        FloatMatrix,
         FPreSortSim,
-        FSimilarity,
         IndexedSimArray,
-        RatingMatrix,
-        SupportMatrix,
+        Support,
     )
 
 
@@ -43,6 +40,7 @@ def indexed_desc_similarity(
     return desc_sim
 
 
-def indexed_support(sup_row: int, support: SupportMatrix) -> IndexedSimArray:
-    indices = np.arange(0, support.shape[1], dtype=support.dtype)
-    return np.column_stack((indices, support[sup_row].T))
+def indexed_support(sup_row: int, support: Support) -> IndexedSimArray:
+    sup_m = support.raw
+    indices = np.arange(0, sup_m.shape[1], dtype=sup_m.dtype)
+    return np.column_stack((indices, sup_m[sup_row].T))

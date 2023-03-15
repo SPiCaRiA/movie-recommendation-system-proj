@@ -30,4 +30,10 @@ from .type_aliases import (
     SimilarityMatrix,
     SupportMatrix,
 )
-from .wrapper_types import Questions, Similarity, UserItemRatings
+from .wrapper_types import (
+    HashableMatrix,
+    Questions,
+    Similarity,
+    Support,
+    UserItemRatings,
+)

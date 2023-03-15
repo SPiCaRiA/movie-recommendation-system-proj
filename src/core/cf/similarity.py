@@ -4,10 +4,10 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from ...typing import Similarity
+from ...typing import NpFloat, Similarity, Support
 
 if TYPE_CHECKING:
-    from ...typing import FloatMatrix, FSimilarity, RatingMatrix, SupportMatrix
+    from ...typing import FloatMatrix, FSimilarity, RatingMatrix
 
 
 def similarity_matrix(
@@ -24,7 +24,7 @@ def similarity_matrix(
     return Similarity(sim_m)
 
 
-def support_matrix(r1: RatingMatrix, r2: RatingMatrix) -> SupportMatrix:
+def support_matrix(r1: RatingMatrix, r2: RatingMatrix) -> Support:
     '''
     r1: m x k matrix
     r2: n x k matrix
@@ -35,4 +35,5 @@ def support_matrix(r1: RatingMatrix, r2: RatingMatrix) -> SupportMatrix:
     r1_na = r1[..., None]
     r2t_na = r2.T[None, ...]
     mask_m = np.transpose(r1_na.mask | r2t_na.mask, (0, 2, 1))
-    return r1.shape[1] - np.count_nonzero(mask_m, axis=2)
+    return Support(
+        (r1.shape[1] - np.count_nonzero(mask_m, axis=2)).astype(NpFloat))

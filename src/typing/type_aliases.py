@@ -44,7 +44,7 @@ NanSimilarityMatrix = Annotated[FloatMaskedMatrix, Represent['NanSimilarity']]
 EntryArray = Annotated[IntMatrix, Shape['_, 3'], Represent['Entry']]
 IndexedSimArray = Annotated[FloatMatrix, Shape['_, 2'], Represent['IndexedSim']]
 PredictionArray = Annotated[FloatArray, Represent['Prediction']]
-SupportMatrix = Annotated[IntMatrix, Represent['Support']]
+SupportMatrix = Annotated[FloatMatrix, Represent['Support']]
 
 # --- Function Types ---
 FSimilarity = Callable[[RatingMatrix, RatingMatrix], NanSimilarityMatrix]
