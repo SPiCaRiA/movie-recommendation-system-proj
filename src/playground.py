@@ -4,9 +4,9 @@ from .io import (
     aggregate_all,
     aggregate_cross_validation,
     read_entries,
-    read_similarity,
+    read_matrix,
     read_split_entries,
-    write_similarity,
+    write_matrix,
 )
 from .loss import loss_mae
 from .predictors.item_based_cf import item_based_cf
@@ -104,8 +104,8 @@ def dump_sim():
                               conf.sim_fill_value)
     print(sim_m.raw)
     print('------------------')
-    write_similarity(fname, Similarity(sim_m.raw))
-    new_sim = read_similarity(fname)
+    write_matrix(fname, Similarity(sim_m.raw))
+    new_sim = read_matrix(fname)
     print(new_sim.raw)
 
 
