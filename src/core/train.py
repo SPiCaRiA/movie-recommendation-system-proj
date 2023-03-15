@@ -4,7 +4,7 @@ from typing import Callable
 
 from ..config import Config
 from ..core.cf import similarity_matrix
-from ..io import report_knn_test
+from ..io import report_cf_test
 from ..loss import loss_mae
 from ..typing import PredictionArray, Questions, Similarity, UserItemRatings
 
@@ -35,7 +35,7 @@ def train_cf(ratings: UserItemRatings, active_ratings: UserItemRatings,
     else:
         raise NameError(f'predictor not found ({predictor.__name__})')
 
-    best: tuple[float, int] = (5, -1)
+    best: tuple[float, Config | None] = (5, None)
     for conf in conf_list:
         # We can only train K value when it's not dynamic.
         assert isinstance(conf.knn_k, int)
@@ -46,7 +46,7 @@ def train_cf(ratings: UserItemRatings, active_ratings: UserItemRatings,
         mae = loss_mae(questions.raw[:, 2],
                        [round(pred) for pred in predictions])
         if mae < best[0]:
-            best = (mae, conf.knn_k)
-        report_knn_test(predictor.__name__, conf.knn_k, mae)
+            best = (mae, conf)
+        report_cf_test(predictor.__name__, conf, mae)
 
-    print(f'\nBest: MAE {best[0]}, K {best[1]}')
+    print(f'\nBest: MAE {best[0]}\n{best[1]}')

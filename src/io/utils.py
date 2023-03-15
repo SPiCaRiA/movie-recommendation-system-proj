@@ -7,11 +7,14 @@ import pandas as pd
 from ..typing import HashableMatrix, NpFloat
 
 if TYPE_CHECKING:
+    from ..config import Config
     from ..typing import FloatMatrix
 
 
-def report_knn_test(method: str, k: int, mae: float):
-    print(f'Running {method}-KNN on K={k}: {mae}')
+def report_cf_test(method: str, conf: Config, mae: float):
+    print(f'--------\tMAE: {mae}\t--------')
+    print(f'Running {method}-KNN on:')
+    print(conf)
 
 
 def write_matrix(fname: str, matrix: HashableMatrix | FloatMatrix) -> None:

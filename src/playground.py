@@ -123,4 +123,4 @@ def train():
 
 
 if __name__ == '__main__':
-    test_slope_one()
+    train()
