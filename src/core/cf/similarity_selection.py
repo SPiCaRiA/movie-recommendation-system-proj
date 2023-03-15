@@ -5,14 +5,13 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from ...typing import Similarity
-
 if TYPE_CHECKING:
     from ...typing import (
         FIndexedSimMap,
         FloatArray,
         FPreSortSim,
         IndexedSimArray,
+        Similarity,
         Support,
     )
 

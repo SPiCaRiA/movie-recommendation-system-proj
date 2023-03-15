@@ -2,10 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Callable, Generator
 
-from ...typing import IntMaskedArray
-
 if TYPE_CHECKING:
-    from ...typing import FPrediction, IndexedSimArray, RatingMatrix
+    from ...typing import FPrediction, IndexedSimArray, IntMaskedArray, RatingMatrix
 
 Accessor = Callable[[], float]
 PredictionGenerator = Generator[Accessor, tuple[float, int], None]

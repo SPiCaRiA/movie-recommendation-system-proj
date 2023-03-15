@@ -4,12 +4,19 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from .type_aliases import IntMaskedArray, IntMaskedMatrix, NpFloat, NpInt
+from .type_aliases import NpFloat, NpInt
 
 if TYPE_CHECKING:
     import numpy.typing as npt
 
-    from .type_aliases import FloatArray, FloatMatrix, IntArray, IntMatrix
+    from .type_aliases import (
+        FloatArray,
+        FloatMatrix,
+        IntArray,
+        IntMaskedArray,
+        IntMaskedMatrix,
+        IntMatrix,
+    )
 
 
 def int_array(len_or_val: int | np.int_ | list[int] | IntArray) -> IntArray:

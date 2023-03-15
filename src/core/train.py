@@ -1,16 +1,19 @@
 from __future__ import annotations
 
-from typing import Callable
+from typing import Callable, Concatenate, ParamSpec
 
 from ..config import Config
 from ..core.cf import similarity_matrix
 from ..io import report_cf_test
 from ..loss import loss_mae
-from ..typing import PredictionArray, Questions, Similarity, UserItemRatings
+from ..typing import PredictionArray, Questions, UserItemRatings
 
-CFPredictor = Callable[
-    [UserItemRatings, UserItemRatings, Questions, Config, Similarity | None],
-    PredictionArray]
+P = ParamSpec('P')
+# CFPredictor = Callable[
+#     [UserItemRatings, UserItemRatings, Questions, Config, Similarity | None],
+#     PredictionArray]
+CFPredictor = Callable[Concatenate[UserItemRatings, UserItemRatings, Questions,
+                                   Config, P], PredictionArray]
 
 
 def train_cf(ratings: UserItemRatings, active_ratings: UserItemRatings,
