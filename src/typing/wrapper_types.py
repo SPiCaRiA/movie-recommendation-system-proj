@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, overload
 
 import numpy as np
 
+from ..utils import round_prediction
 from .nparray_builder import int_array
 
 if TYPE_CHECKING:
@@ -142,6 +143,15 @@ class Questions():
 
         return question_dict
 
+    def ground_truth(self) -> IntArray:
+        if not self._contains_ans or self.raw[0, 2] == 0:
+            # We just test the first entry in the raw entry array, assuming the
+            # cross-validation dataset has ground truth for all entries.
+            raise ValueError('ground truth does not exist for questions.')
+        # Return ground truth from raw entry array instead of self._answers,
+        # since answers may be force updated.
+        return self.raw[:, 2]
+
     def __getitem__(self, user_id: int) -> list[int]:
         '''
         Return an array of missing movie ids under the given user id.
@@ -169,11 +179,8 @@ class Questions():
 
         if (isinstance(answers, list) and isinstance(answers[0], float)) or \
             (isinstance(answers, np.ndarray) and np.issubdtype(answers.dtype, np.floating)):
-            answers = [
-            # Force rounding 0.x to 1
-                1 if round(ans) == 0 and ans != 0 else round(ans)
-                for ans in answers
-            ]
+            # Force clamp rounding answers.
+            answers = [round_prediction(ans) for ans in answers]
 
         if validate and not len(
                 bad_values := self._filter_bad_values(answers)) == 0:

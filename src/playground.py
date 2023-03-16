@@ -14,6 +14,7 @@ from .predictors.slope_one_cf import slope_one_cf
 from .predictors.user_based_cf import user_based_cf
 from .presets import dynamic_presets, presets
 from .typing import Similarity
+from .utils import round_prediction
 
 
 def test_user_based_cf() -> None:
@@ -61,7 +62,7 @@ def test_slope_one():
     print(r.raw)
     print(a.raw)
     print(q)
-    conf = presets['slope_one']
+    conf = presets['slope_one'] + presets['case_amp']
     print(conf)
     predictions = slope_one_cf(r, a, q, conf)
     print(predictions)
@@ -89,7 +90,9 @@ def test():
     # q.take_answers(user_based_cf(r, a, q, conf), force_update=True)
     # print(predictions)
     # print(q._answers)
-    print(loss_mae(q._answers, predictions))
+    print(
+        loss_mae(q.ground_truth(),
+                 [round_prediction(pred) for pred in predictions]))
 
 
 def dump_sim():
@@ -116,11 +119,11 @@ def train():
     for k in range(1, 50):
         conf = (presets['corr'] + {
             'knn_k': k
-        }) * dynamic_presets['case_amp'](2.5) * dynamic_presets['iuf'](r.raw)
+        }) * dynamic_presets['case_amp'](2.5) + dynamic_presets['iuf'](r.raw)
         conf_list.append(conf)
     print(conf_list[0])
     train_cf(r, a, q, user_based_cf, conf_list)
 
 
 if __name__ == '__main__':
-    train()
+    test()

@@ -7,18 +7,20 @@ from ..core.cf import similarity_matrix
 from ..io import report_cf_test
 from ..loss import loss_mae
 from ..typing import PredictionArray, Questions, UserItemRatings
+from ..utils import round_prediction
 
 P = ParamSpec('P')
-# CFPredictor = Callable[
-#     [UserItemRatings, UserItemRatings, Questions, Config, Similarity | None],
-#     PredictionArray]
 CFPredictor = Callable[Concatenate[UserItemRatings, UserItemRatings, Questions,
                                    Config, P], PredictionArray]
+BestComp = tuple[float, Config | None]
 
 
-def train_cf(ratings: UserItemRatings, active_ratings: UserItemRatings,
-             questions: Questions, predictor: CFPredictor,
-             conf_list: list[Config]) -> None:
+def train_cf(ratings: UserItemRatings,
+             active_ratings: UserItemRatings,
+             questions: Questions,
+             predictor: CFPredictor,
+             conf_list: list[Config],
+             verbosity: int = 1) -> BestComp:
     init_conf = conf_list[0]
     if predictor.__name__ == 'slope_one_cf':
         sim_m = init_conf.sim_scheme(ratings.raw.T, ratings.raw.T).filled(
@@ -38,7 +40,7 @@ def train_cf(ratings: UserItemRatings, active_ratings: UserItemRatings,
     else:
         raise NameError(f'predictor not found ({predictor.__name__})')
 
-    best: tuple[float, Config | None] = (5, None)
+    best: BestComp = (5, None)
     for conf in conf_list:
         # We can only train K value when it's not dynamic.
         assert isinstance(conf.knn_k, int)
@@ -46,10 +48,15 @@ def train_cf(ratings: UserItemRatings, active_ratings: UserItemRatings,
         predictions = predictor(ratings, active_ratings, questions, conf, sim_m)
         # For training data, q should have ground truth as the 3rd column of the
         # entry array.
-        mae = loss_mae(questions.raw[:, 2],
-                       [round(pred) for pred in predictions])
+        mae = loss_mae(questions.ground_truth(),
+                       [round_prediction(pred) for pred in predictions])
         if mae < best[0]:
             best = (mae, conf)
-        report_cf_test(predictor.__name__, conf, mae)
 
-    print(f'\nBest: MAE {best[0]}\n{best[1]}')
+        if verbosity != 0:
+            report_cf_test(predictor.__name__, conf, mae)
+
+    if verbosity != 0:
+        print(f'\nBest: MAE {best[0]}\n{best[1]}')
+
+    return best
