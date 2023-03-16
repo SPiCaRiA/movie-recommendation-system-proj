@@ -71,10 +71,11 @@ class CrossValidationExperiment():
 
     def _best_k_user_based(self, conf: Config, k_range: list[int], name: str):
         conf_list = [conf + {'knn_k': k} for k in k_range]
-        best_mae, best_conf = train_cf(*self.raq,
-                                       user_based_cf,
-                                       conf_list,
-                                       verbosity=0)
+        best_mae, best_conf = train_cf(
+            *self.raq,
+            user_based_cf,    # type: ignore
+            conf_list,
+            verbosity=0)
         print(f'Best K value for {name} is {best_conf.knn_k}' +
               f', with MAE {best_mae}')
 
@@ -86,24 +87,30 @@ uvi_20 = CrossValidationExperiment(read_entries('data/uvi/train.uvi20.txt'),
                                    read_entries('data/uvi/test.uvi20.txt'))
 
 _best_hparams_general = {
-    'slope_one': 0.12215236904687851,
-    'item_corr': 0.10372219070593693,
-    'user_corr_iuf': 0.49279633416121876,
-    'user_cos': 0.28122744209892764
+    'slope_one': 0.04869672913367798,
+    'item_corr': 0.17459958872499504,
+    'user_corr_iuf': 0.673639019243687,
+    'user_cos': 0.1092483662277391,
+    'k_user_corr_iuf': 20,
+    'k_user_cos': 10
 }
 
 _best_hparams_uvi5 = {
     'slope_one': 0.3070874300236346,
     'item_corr': 0.06547043199821775,
     'user_corr_iuf': 0,
-    'user_cos': 0.5897771526870847
+    'user_cos': 0.5897771526870847,
+    'k_user_corr_iuf': 20,
+    'k_user_cos': 10,
 }
 
 _best_hparams_uvi5_extend = {
-    'slope_one': 0.15464882681263661,
+    'slope_one': 0.16577448666259229,
     'item_corr': 0.1653085532519842,
     'user_corr_iuf': 0.1484042024587016,
-    'user_cos': 0.514987380917176
+    'user_cos': 0.514987380917176,
+    'k_user_corr_iuf': 50,
+    'k_user_cos': 38,
 }
 
 
@@ -144,10 +151,10 @@ def predict_write_real_ensemble():
     train_arr = readall_train()
 
     # --- Change here ---
-    # hparams = _best_hparams_general
+    hparams = _best_hparams_general
     # hparams = _best_hparams_uvi5
-    hparams = _best_hparams_uvi5_extend
-    infix = 'linear_ensembler_uvi5_extend'
+    # hparams = _best_hparams_uvi5_extend
+    infix = 'linear_ensembler_k'
     # --- Change here ---
 
     for fname in fnames:
@@ -169,13 +176,13 @@ def predict_write_real_ensemble():
             r,
             a,
             q,
-            presets['corr'] + {'knn_k': 20},
+            presets['corr'] + {'knn_k': hparams['k_user_corr_iuf']},
         )
         user_cos_pred = user_based_cf(
             r,
             a,
             q,
-            presets['cos'] + {'knn_k': 10},
+            presets['cos'] + {'knn_k': hparams['k_user_cos']},
         )
 
         predictions = hparams['slope_one'] * slope_one_pred + hparams[
