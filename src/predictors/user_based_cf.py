@@ -34,7 +34,8 @@ def user_based_cf(ratings: UserItemRatings,
         # User similarity matrix is indexed by active users.
             active_ratings.ind_user_id(user_id),
             user_similarity,
-            config.pre_sort_sim)
+            config.pre_sort_sim,
+            map_func=config.indexed_sim_map)
 
         active_user = stacked_ratings[user_id]
         if callable(config.knn_k):
