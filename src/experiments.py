@@ -2,35 +2,31 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from .config import Config
-from .core.cf import similarity_matrix
 from .core.train import train_cf
 from .io import (
     aggregate_all,
     aggregate_cross_validation,
     read_entries,
-    read_matrix,
     read_split_entries,
+    readall_train,
     report_cf_test,
-    write_matrix,
 )
 from .loss import loss_mae
-from .predictors.item_based_cf import item_based_cf
-from .predictors.slope_one_cf import slope_one_cf
 from .predictors.user_based_cf import user_based_cf
 from .presets import dynamic_presets, presets
-from .typing import EntryArray, Similarity
 from .utils import round_prediction
 from .variants import (
-    basic_variants,
     build_case_amp_iuf_variants,
     build_case_amp_variants,
     build_iuf_variants,
+    build_user_based_conf_list,
     default_case_amp_variants,
+    vanilla_variants,
 )
 
 if TYPE_CHECKING:
-    from .typing import Questions, UserItemRatings
+    from .config import Config
+    from .typing import EntryArray, Questions, UserItemRatings
     from .variants import Variant
 
 
@@ -45,50 +41,72 @@ def _run_variants(variants: list[Variant], r: UserItemRatings,
         report_cf_test(predictor.__name__, conf, mae)
 
 
-class SimpleRun():
-    train_arr, test_arr = read_split_entries(0.05)
-    r, a, q = aggregate_cross_validation(train_arr, test_arr)
+class CrossValidationExperiment():
 
-    @staticmethod
-    def case_amplification_variants():
+    def __init__(self, train_arr: EntryArray, test_arr: EntryArray):
+        self.raq = aggregate_cross_validation(train_arr, test_arr)
+        self.r, self.a, self.q = self.raq
+
+    def case_amplification_variants(self):
         # ρ = 2.5
-        _run_variants(default_case_amp_variants, SimpleRun.r, SimpleRun.a,
-                      SimpleRun.q)
+        _run_variants(default_case_amp_variants, *self.raq)
         # ρ = 1.5
-        _run_variants(build_case_amp_variants(1.5), SimpleRun.r, SimpleRun.a,
-                      SimpleRun.q)
+        _run_variants(build_case_amp_variants(1.5), *self.raq)
         # ρ = 3.5
-        _run_variants(build_case_amp_variants(3.5), SimpleRun.r, SimpleRun.a,
-                      SimpleRun.q)
+        _run_variants(build_case_amp_variants(3.5), *self.raq)
 
-    @staticmethod
-    def iuf_variants():
-        _run_variants(build_iuf_variants(SimpleRun.r.raw), SimpleRun.r,
-                      SimpleRun.a, SimpleRun.q)
+    def iuf_variants(self):
+        _run_variants(build_iuf_variants(self.r.raw), *self.raq)
 
-    @staticmethod
-    def basic_variants():
-        _run_variants(basic_variants, SimpleRun.r, SimpleRun.a, SimpleRun.q)
+    def case_amp_iuf_variants(self):
+        _run_variants(build_case_amp_iuf_variants(2.5, self.r.raw), *self.raq)
 
-    @staticmethod
-    def best_k_user_based():
+    def vanilla_variants(self):
+        _run_variants(vanilla_variants, *self.raq)
+
+    def best_k_user_based(self):
         # Best k value for user-based CF
-        SimpleRun._best_k_user_based(presets['cos'], list(range(1, 50)))
-        SimpleRun._best_k_user_based(presets['corr'], list(range(1, 50)))
+        for name, conf in build_user_based_conf_list(self.r.raw).items():
+            self._best_k_user_based(conf, list(range(1, 50)), name)
 
-    @staticmethod
-    def _best_k_user_based(conf: Config, k_range: list[int]):
+    def _best_k_user_based(self, conf: Config, k_range: list[int], name: str):
         conf_list = [conf + {'knn_k': k} for k in k_range]
-        best_mae, best_conf = train_cf(SimpleRun.r,
-                                       SimpleRun.a,
-                                       SimpleRun.q,
+        best_mae, best_conf = train_cf(*self.raq,
                                        user_based_cf,
                                        conf_list,
                                        verbosity=0)
-        print(
-            f'Best K value for {conf.sim_scheme.__name__} is {best_conf.knn_k}'
-            + f', with MAE {best_mae}')
+        print(f'Best K value for {name} is {best_conf.knn_k}' +
+              f', with MAE {best_mae}')
+
+
+simple_run = CrossValidationExperiment(*read_split_entries(0.05))
+uvi_5 = CrossValidationExperiment(read_entries('data/uvi/train.uvi5.txt'),
+                                  read_entries('data/uvi/test.uvi5.txt'))
+uvi_20 = CrossValidationExperiment(read_entries('data/uvi/train.uvi20.txt'),
+                                   read_entries('data/uvi/test.uvi20.txt'))
+
+
+def predict_write_real():
+    fnames = ['test5', 'test10', 'test20']
+    train_arr = readall_train()
+
+    # --- Change here ---
+    predictor = user_based_cf
+    infix = 'item_corr'
+    # --- Change here ---
+
+    for fname in fnames:
+        # --- Change here ---
+        conf = presets['corr'] + presets['item_based_k']
+        # --- Change here ---
+        test_arr = read_entries(f'data/task/{fname}.txt')
+        r, a, q = aggregate_all(train_arr, test_arr)
+        predictions = predictor(r, a, q, conf)
+        q.take_answers(predictions, validate=False)
+
+        with open(f'data/outputs/{fname}.{infix}.txt', 'w') as f:
+            f.write(str(q))
 
 
 if __name__ == '__main__':
-    SimpleRun.basic_variants()
+    predict_write_real()

@@ -39,8 +39,5 @@ def read_split_entries(test_size: float) -> tuple[EntryArray, EntryArray]:
     return train, test
 
 
-def readall_train() -> UserItemRatings:
-    '''
-    Read all raw training data as numpy masked array (matrix).
-    '''
-    return aggregate_ratings(read_entries(TRAIN_FNAME))
+def readall_train() -> EntryArray:
+    return read_entries(TRAIN_FNAME)
