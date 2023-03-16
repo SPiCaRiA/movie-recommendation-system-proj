@@ -99,6 +99,13 @@ _best_hparams_uvi5 = {
     'user_cos': 0.5897771526870847
 }
 
+_best_hparams_uvi5_extend = {
+    'slope_one': 0.15464882681263661,
+    'item_corr': 0.1653085532519842,
+    'user_corr_iuf': 0.1484042024587016,
+    'user_cos': 0.514987380917176
+}
+
 
 def predict_write_real():
     fnames = ['test5', 'test10', 'test20']
@@ -138,10 +145,11 @@ def predict_write_real_ensemble():
 
     # --- Change here ---
     # hparams = _best_hparams_general
-    hparams = _best_hparams_uvi5
+    # hparams = _best_hparams_uvi5
+    hparams = _best_hparams_uvi5_extend
+    infix = 'linear_ensembler_uvi5_extend'
     # --- Change here ---
 
-    infix = 'linear_ensembler_uvi5'
     for fname in fnames:
         test_arr = read_entries(f'data/task/{fname}.txt')
         r, a, q = aggregate_all(train_arr, test_arr)
