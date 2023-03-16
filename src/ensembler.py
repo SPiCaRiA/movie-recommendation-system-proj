@@ -7,7 +7,7 @@ from skopt.space import Real
 from skopt.utils import use_named_args
 
 from .core.cf import similarity_matrix, support_matrix
-from .io import aggregate_cross_validation, read_split_entries
+from .io import aggregate_cross_validation, read_entries, read_split_entries
 from .loss import loss_rmse
 from .predictors import item_based_cf, slope_one_cf, user_based_cf
 from .presets import dynamic_presets, presets
@@ -23,7 +23,10 @@ search_space = [
 ]
 
 # Pre-computed values.
-_r, _a, _q = aggregate_cross_validation(*read_split_entries(0.1))
+# _r, _a, _q = aggregate_cross_validation(*read_split_entries(0.1))
+_r, _a, _q = aggregate_cross_validation(
+    read_entries('data/uvi/train.uvi5.extend.txt'),
+    read_entries('data/uvi/test.uvi5.extend.txt'))
 
 _slope_one_diff = similarity_matrix(_r.raw.T, _r.raw.T,
                                     presets['slope_one'].sim_scheme, 0)

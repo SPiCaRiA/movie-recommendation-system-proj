@@ -6,8 +6,10 @@ from .io import (
     read_entries,
     read_matrix,
     read_split_entries,
+    readall_train,
     write_matrix,
 )
+from .io.data_agg import aggregate_questions
 from .loss import loss_mae
 from .predictors.item_based_cf import item_based_cf
 from .predictors.slope_one_cf import slope_one_cf
@@ -121,5 +123,45 @@ def train():
     train_cf(r, a, q, user_based_cf, conf_list)
 
 
+def make_uvi5_extend():
+    train_arr = readall_train()
+    q = aggregate_questions(train_arr, True)
+
+    cur_user_id = -1
+    count = 0
+    tests = []
+    trains = []
+    user_count = 0
+    for entry in q.raw:
+        user_id, _, _ = entry
+
+        if user_count > 50:
+            trains.append(entry)
+            continue
+
+        if cur_user_id != user_id:
+            user_count += 1
+            cur_user_id = user_id
+            count = 0
+
+        if count < 5:
+            trains.append(entry)
+            count += 1
+        else:
+            tests.append(entry)
+
+    with open('data/uvi/train.uvi5.extend.txt', 'w+') as f:
+        f.writelines([
+            f'{user_id} {movie_id} {rating}\n'
+            for user_id, movie_id, rating in trains
+        ])
+
+    with open('data/uvi/test.uvi5.extend.txt', 'w+') as f:
+        f.writelines([
+            f'{user_id} {movie_id} {rating}\n'
+            for user_id, movie_id, rating in tests
+        ])
+
+
 if __name__ == '__main__':
-    test()
+    make_uvi5_extend()

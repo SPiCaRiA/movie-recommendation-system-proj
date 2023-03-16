@@ -12,7 +12,7 @@ from .io import (
     report_cf_test,
 )
 from .loss import loss_mae
-from .predictors.user_based_cf import user_based_cf
+from .predictors import item_based_cf, slope_one_cf, user_based_cf
 from .presets import dynamic_presets, presets
 from .utils import round_prediction
 from .variants import (
@@ -85,28 +85,100 @@ uvi_5 = CrossValidationExperiment(read_entries('data/uvi/train.uvi5.txt'),
 uvi_20 = CrossValidationExperiment(read_entries('data/uvi/train.uvi20.txt'),
                                    read_entries('data/uvi/test.uvi20.txt'))
 
+_best_hparams_general = {
+    'slope_one': 0.12215236904687851,
+    'item_corr': 0.10372219070593693,
+    'user_corr_iuf': 0.49279633416121876,
+    'user_cos': 0.28122744209892764
+}
+
+_best_hparams_uvi5 = {
+    'slope_one': 0.3070874300236346,
+    'item_corr': 0.06547043199821775,
+    'user_corr_iuf': 0,
+    'user_cos': 0.5897771526870847
+}
+
 
 def predict_write_real():
     fnames = ['test5', 'test10', 'test20']
     train_arr = readall_train()
 
     # --- Change here ---
-    predictor = user_based_cf
-    infix = 'item_corr'
+    predictor = item_based_cf
+    infix = 'item_adj_cos'
     # --- Change here ---
 
+    printed = False
     for fname in fnames:
-        # --- Change here ---
-        conf = presets['corr'] + presets['item_based_k']
-        # --- Change here ---
         test_arr = read_entries(f'data/task/{fname}.txt')
         r, a, q = aggregate_all(train_arr, test_arr)
-        predictions = predictor(r, a, q, conf)
-        q.take_answers(predictions, validate=False)
 
-        with open(f'data/outputs/{fname}.{infix}.txt', 'w') as f:
+        # --- Change here ---
+        # conf = presets['corr'] + {
+        #     'knn_k': 27
+        # } + dynamic_presets['case_amp'](2.5)
+        conf = presets['adj_cos'] + presets['item_based_k']
+        # --- Change here ---
+
+        if not printed:
+            print(conf)
+            printed = True
+
+        predictions = predictor(r, a, q, conf)
+        q.take_answers(predictions)
+
+        with open(f'data/outputs/{fname}.{infix}.txt', 'w+') as f:
+            f.write(str(q))
+
+
+def predict_write_real_ensemble():
+    fnames = ['test5', 'test10', 'test20']
+    train_arr = readall_train()
+
+    # --- Change here ---
+    # hparams = _best_hparams_general
+    hparams = _best_hparams_uvi5
+    # --- Change here ---
+
+    infix = 'linear_ensembler_uvi5'
+    for fname in fnames:
+        test_arr = read_entries(f'data/task/{fname}.txt')
+        r, a, q = aggregate_all(train_arr, test_arr)
+        slope_one_pred = slope_one_cf(
+            r,
+            a,
+            q,
+            presets['slope_one'] + presets['item_based_k'],
+        )
+        item_corr_pred = item_based_cf(
+            r,
+            a,
+            q,
+            presets['corr'] + presets['item_based_k'],
+        )
+        user_corr_iuf_pred = user_based_cf(
+            r,
+            a,
+            q,
+            presets['corr'] + {'knn_k': 20},
+        )
+        user_cos_pred = user_based_cf(
+            r,
+            a,
+            q,
+            presets['cos'] + {'knn_k': 10},
+        )
+
+        predictions = hparams['slope_one'] * slope_one_pred + hparams[
+            'item_corr'] * item_corr_pred + hparams[
+                'user_corr_iuf'] * user_corr_iuf_pred + hparams[
+                    'user_cos'] * user_cos_pred
+        q.take_answers(predictions)
+
+        with open(f'data/outputs/{fname}.{infix}.txt', 'w+') as f:
             f.write(str(q))
 
 
 if __name__ == '__main__':
-    predict_write_real()
+    predict_write_real_ensemble()
